@@ -1,3 +1,4 @@
+[![Build Status](https://dev.azure.com/odonyde/AZ-400/_apis/build/status/mslearn-tailspin-spacegame-web?branchName=master)](https://dev.azure.com/odonyde/AZ-400/_build/latest?definitionId=5&branchName=master)
 
 # Contributing
 
