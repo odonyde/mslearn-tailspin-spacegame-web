@@ -2,8 +2,13 @@ trigger:
 - '*'
 
 variables:
-  buildConfiguration: 'Release'
-  releaseBranchName: 'release'
+  - group: 'spacegame'
+  - name: 'dotNetProjectName'
+    value: 'Tailspin.SpaceGame.Web'
+  - name: 'buildConfiguration'
+    value: 'Release'
+  - name: 'releaseBranchName'
+    value: 'release'
 
 stages:
 - stage: 'Build'
@@ -17,7 +22,7 @@ stages:
       - npm
 
     variables:
-      wwwrootDir: 'Tailspin.SpaceGame.Web/wwwroot'
+      wwwrootDir: '$(dotNetProjectName)/wwwroot'
       dotnetSdkVersion: '3.1.300'
 
     steps:
@@ -47,7 +52,7 @@ stages:
         command: 'restore'
         restoreSolution: '**/*.sln'
         feedsToUse: 'select'
-        vstsFeed: '$(System.TeamProject)/Tailspin.SpaceGame.Web.Models'
+        vstsFeed: '$(System.TeamProject)/$(artifactsFeedName)'
 
     - task: DotNetCoreCLI@2
       displayName: 'Build project - $(buildConfiguration)'
@@ -98,7 +103,7 @@ stages:
       artifact: drop
 
 - stage: 'Dev'
-  displayName: 'Deploy web app to development environment'
+  displayName: 'Deploy to dev environment'
   dependsOn: Build
   condition: |
     and
@@ -111,8 +116,6 @@ stages:
     pool:
       vmImage: 'ubuntu-18.04'
     environment: dev
-    variables:
-    - group: Release
     strategy:
       runOnce:
         deploy:
@@ -120,8 +123,8 @@ stages:
           - download: current
             artifact: drop
           - task: AzureWebApp@1
-            displayName: 'Azure App Service Deploy: website'
+            displayName: 'Deploy to Azure App Service'
             inputs:
               azureSubscription: 'odonyde-spacegame'
-              appName: '$(WebAppNameDev)'
-              package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/$(DotNetProjectName).zip'
+              appName: '$(webAppNameDev)'
+              package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/$(dotNetProjectName).zip'
