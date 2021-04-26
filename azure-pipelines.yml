@@ -123,7 +123,7 @@ stages:
   - deployment: Deploy
     pool:
       vmImage: 'ubuntu-18.04'
-    environment: dev
+    environment: Dev
     strategy:
       runOnce:
         deploy:
@@ -145,7 +145,7 @@ stages:
   - deployment: Deploy
     pool:
       vmImage: 'ubuntu-18.04'
-    environment: test
+    environment: Test
     strategy:
       runOnce:
         deploy:
@@ -157,4 +157,25 @@ stages:
             inputs:
               azureSubscription: '$(azureServiceConnectionName)'
               appName: '$(webAppNameTest)'
+              package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/$(dotNetProjectName).zip'
+
+- stage: 'Staging'
+  displayName: 'Deploy to staging environment'
+  dependsOn: Test
+  jobs:
+  - deployment: Deploy
+    pool:
+      vmImage: 'ubuntu-18.04'
+    environment: Staging
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+          - task: AzureWebApp@1
+            displayName: 'Deploy to Azure App Service - $(webAppNameStaging)'
+            inputs:
+              azureSubscription: '$(azureServiceConnectionName)'
+              appName: '$(webAppNameStaging)'
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/$(dotNetProjectName).zip'
