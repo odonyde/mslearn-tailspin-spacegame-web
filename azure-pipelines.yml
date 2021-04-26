@@ -10,12 +10,20 @@ variables:
   - name: 'releaseBranchName'
     value: 'release'
 
+schedules:
+- cron: '0 3 * * *'
+  displayName: Deploy every day at 3 A.M.
+  branches:
+    include:
+    - release
+  always: false
+
 stages:
 - stage: 'Build'
   displayName: 'Build web app'
   jobs:
   - job: 'Build'
-    displayName: 'Build job'
+    displayName: 'Build'
     pool:
       vmImage: 'ubuntu-18.04'
       demands:
@@ -123,8 +131,30 @@ stages:
           - download: current
             artifact: drop
           - task: AzureWebApp@1
-            displayName: 'Deploy to Azure App Service'
+            displayName: 'Deploy to Azure App Service - $(webAppNameDev)'
             inputs:
               azureSubscription: 'odonyde-spacegame'
               appName: '$(webAppNameDev)'
+              package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/$(dotNetProjectName).zip'
+
+- stage: 'Test'
+  displayName: 'Deploy to test environment'
+  dependsOn: Dev
+  #condition: eq(variables['Build.Reason'], 'Schedule')
+  jobs:
+  - deployment: Deploy
+    pool:
+      vmImage: 'ubuntu-18.04'
+    environment: test
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+          - task: AzureWebApp@1
+            displayName: 'Deploy to Azure App Service - $(webAppNameTest)'
+            inputs:
+              azureSubscription: 'Resource Manager - Tailspin - Space Game'
+              appName: '$(webAppNameTest)'
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/$(dotNetProjectName).zip'
