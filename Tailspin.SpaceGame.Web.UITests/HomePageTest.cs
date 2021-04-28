@@ -32,17 +32,17 @@ namespace UITests
                 {
                   case "Chrome":
                     driver = new ChromeDriver(
-                        Environment.GetEnvironmentVariable("ChromeWebDriver")
+                        Environment.GetEnvironmentVariable("CHROMEWEBDRIVER")
                     );
                     break;
                   case "Firefox":
                     driver = new FirefoxDriver(
-                        Environment.GetEnvironmentVariable("GeckoWebDriver")
+                        Environment.GetEnvironmentVariable("EDGEWEBDRIVER")
                     );
                     break;
                   case "Edge":
                     driver = new EdgeDriver(
-                        Environment.GetEnvironmentVariable("EdgeWebDriver"),
+                        Environment.GetEnvironmentVariable("GECKOWEBDRIVER"),
                         new EdgeOptions
                         {
                             UseChromium = true
