@@ -68,7 +68,9 @@ stages:
       inputs:
         command: 'build'
         arguments: '--no-restore --configuration $(buildConfiguration)'
-        projects: '$(System.DefaultWorkingDirectory)/**/$(dotNetProjectName).csproj'
+        projects: |
+          '$(System.DefaultWorkingDirectory)/**/$(dotNetProjectName).csproj'
+          '$(System.DefaultWorkingDirectory)/**/$(dotNetProjectName).Tests.csproj'
 
     - task: DotNetCoreCLI@2
       displayName: 'Install .NET Core tools from local manifest'
@@ -78,10 +80,10 @@ stages:
         arguments: 'restore'
 
     - task: DotNetCoreCLI@2
-      displayName: 'Build and unit tests - $(buildConfiguration)'
+      displayName: 'Run unit tests - $(buildConfiguration)'
       inputs:
         command: 'test'
-        arguments: '--configuration $(buildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/Coverage/'
+        arguments: '--no-build --configuration $(buildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/Coverage/'
         publishTestResults: true
         projects: '**/*.Tests.csproj'
 
