@@ -69,8 +69,8 @@ stages:
         command: 'build'
         arguments: '--no-restore --configuration $(buildConfiguration)'
         projects: |
-          '**/$(dotNetProjectName).csproj'
-          '**/$(dotNetProjectName).Tests.csproj'
+          **/*.csproj
+          !**/*.UITests.csproj'
 
     - task: DotNetCoreCLI@2
       displayName: 'Install .NET Core tools from local manifest'
