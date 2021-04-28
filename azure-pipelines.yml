@@ -9,6 +9,8 @@ variables:
     value: 'Release'
   - name: 'releaseBranchName'
     value: 'release'
+  - name: 'dotnetSdkVersion'
+    value: '3.1.300'
 
 schedules:
 - cron: '0 3 * * *'
@@ -31,7 +33,6 @@ stages:
 
     variables:
       wwwrootDir: '$(dotNetProjectName)/wwwroot'
-      dotnetSdkVersion: '3.1.300'
 
     steps:
     - task: UseDotNet@2
@@ -101,7 +102,7 @@ stages:
       displayName: 'Publish project - $(buildConfiguration)'
       inputs:
         command: 'publish'
-        projects: '**/*.csproj'
+        projects: '$(System.DefaultWorkingDirectory)/**/$(dotNetProjectName).csproj'
         publishWebProjects: false
         arguments: '--no-build --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/$(buildConfiguration)'
         zipAfterPublish: true
@@ -158,6 +159,29 @@ stages:
               azureSubscription: '$(azureServiceConnectionName)'
               appName: '$(webAppNameTest)'
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/$(dotNetProjectName).zip'
+  - job: RunUITests
+    dependsOn: Deploy
+    displayName: 'Run UI tests'
+    pool:
+      vmImage: 'windows-2019'
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core SDK $(dotnetSdkVersion)'
+      inputs:
+        version: '$(dotnetSdkVersion)'
+    - task: DotNetCoreCLI@2
+      displayName: 'Build UI test project - $(buildConfiguration)'
+      inputs:
+        command: 'build'
+        arguments: '--configuration $(buildConfiguration)'
+        projects: '$(System.DefaultWorkingDirectory)/**/*UITests.csproj'
+    - task: DotNetCoreCLI@2
+      displayName: 'Run UI tests - $(buildConfiguration)'
+      inputs:
+        command: 'test'
+        arguments: '--no-build --configuration $(buildConfiguration)'
+        publishTestResults: true
+        projects: '$(System.DefaultWorkingDirectory)/**/*UITests.csproj'        
 
 - stage: 'Staging'
   displayName: 'Deploy to staging environment'
