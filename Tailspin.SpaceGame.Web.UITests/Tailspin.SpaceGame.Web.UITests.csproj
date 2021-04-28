@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <PublishChromeDriver>True</PublishChromeDriver>
     <IsPackable>false</IsPackable>
+    <ProjectGuid>{F5362405-49C3-4A80-B97A-D604CD331E39}</ProjectGuid>
   </PropertyGroup>
 
   <ItemGroup>
