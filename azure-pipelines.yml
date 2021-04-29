@@ -28,6 +28,7 @@ stages:
 
 - stage: Build
   displayName: Build web app
+  condition: eq(variables['skipStageBuild'], 'false')
   jobs:
 
   - job: Build
@@ -123,7 +124,11 @@ stages:
   condition: |
     and
     (
-      succeeded(),
+      or
+      (
+        eq(variables['skipStageBuild'], 'true'),
+        succeeded()
+      ),
       eq(variables['Build.SourceBranchName'], variables['releaseBranchName'])
     )
   jobs:
