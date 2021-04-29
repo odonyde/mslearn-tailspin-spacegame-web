@@ -250,7 +250,7 @@ stages:
 
   - job: LoadTests
     dependsOn: Deploy
-    displayName: Load tests
+    displayName: Load Tests
     pool:
       vmImage: ubuntu-18.04
     variables:
@@ -258,7 +258,7 @@ stages:
     steps:
 
     - script: |
-        wget -c ftp.ps.pl/pub/apache/jmeter/binaries/apache-jmeter-$(jmeterVersion).tgz
+        wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-$(jmeterVersion).tgz
         tar -xzf apache-jmeter-$(jmeterVersion).tgz
       displayName: Install Apache JMeter
 
