@@ -16,19 +16,10 @@ variables:
   - name: dotnetSdkVersion
     value: 3.1.300
 
-schedules:
-- cron: 0 3 * * *
-  displayName: Deploy every day at 3 A.M.
-  branches:
-    include:
-    - release
-  always: false
-
 stages:
 
 - stage: Build
   displayName: Build web app
-  condition: eq(variables['skipStageBuild'], 'false')
   jobs:
 
   - job: Build
@@ -124,11 +115,8 @@ stages:
   condition: |
     and
     (
-      or
-      (
-        eq(variables['skipStageBuild'], 'true'),
-        succeeded()
-      ),
+      eq(variables['skipStageDev'], 'false'),
+      dependencies.Build.succeeded(),
       eq(variables['Build.SourceBranchName'], variables['releaseBranchName'])
     )
   jobs:
@@ -155,8 +143,20 @@ stages:
 
 - stage: Test
   displayName: Deploy to test environment
-  dependsOn: Dev
-  #condition: eq(variables['Build.Reason'], 'Schedule')
+  dependsOn:
+    - Build
+    - Dev
+  condition: |
+    and
+    (
+      eq(variables['skipStageTest'], 'false'),
+      dependencies.Build.succeeded(),
+      or
+      (
+        dependencies.Dev.skipped(),
+        dependencies.Dev.succeeded(),
+      )
+    )
   jobs:
 
   - deployment: Deploy
@@ -208,7 +208,26 @@ stages:
 
 - stage: Staging
   displayName: Deploy to staging environment
-  dependsOn: Test
+  dependsOn:
+    - Build
+    - Dev
+    - Test
+  condition: |
+    and
+    (
+      eq(variables['skipStageStaging'], 'false'),
+      dependencies.Build.succeeded(),
+      or
+      (
+        dependencies.Dev.skipped(),
+        dependencies.Dev.succeeded(),
+      ),
+      or
+      (
+        dependencies.Test.skipped(),
+        dependencies.Test.succeeded(),
+      )
+    )
   jobs:
 
   - deployment: Deploy
