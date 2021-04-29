@@ -1,8 +1,6 @@
 # Conventions:
 # - Do not quote strings except for paths, scripts, and task arguments.
 # - Add an empty line before and after each stage, job, and step.
-# Notes:
-# - Commented out .NET Core SDK installation as available on Microsoft-hosted agents.
 
 trigger:
 - '*'
@@ -15,8 +13,8 @@ variables:
     value: Release
   - name: releaseBranchName
     value: release
-  # - name: dotnetSdkVersion
-  #   value: 3.1.300
+  - name: dotnetSdkVersion
+    value: 3.1.300
 
 stages:
 
@@ -33,10 +31,10 @@ stages:
       wwwrootDir: $(dotNetProjectName)/wwwroot
     steps:
 
-    # - task: UseDotNet@2
-    #   displayName: Use .NET Core SDK $(dotnetSdkVersion)
-    #   inputs:
-    #     version: $(dotnetSdkVersion)
+    - task: UseDotNet@2
+      displayName: Use .NET Core SDK $(dotnetSdkVersion)
+      inputs:
+        version: $(dotnetSdkVersion)
 
     - task: Npm@1
       displayName: Run npm install
@@ -187,17 +185,17 @@ stages:
               appName: $(webAppNameTest)
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/$(dotNetProjectName).zip'
 
-  - job: RunUITests
+  - job: UITests
     dependsOn: Deploy
-    displayName: Run UI tests
+    displayName: UI Tests
     pool:
       vmImage: windows-2019
     steps:
 
-    # - task: UseDotNet@2
-    #   displayName: Use .NET Core SDK $(dotnetSdkVersion)
-    #   inputs:
-    #     version: $(dotnetSdkVersion)
+    - task: UseDotNet@2
+      displayName: Use .NET Core SDK $(dotnetSdkVersion)
+      inputs:
+        version: $(dotnetSdkVersion)
 
     - task: DotNetCoreCLI@2
       displayName: Build UI tests - $(buildConfiguration)
