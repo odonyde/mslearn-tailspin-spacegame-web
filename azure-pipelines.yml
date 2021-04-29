@@ -73,8 +73,8 @@ stages:
         command: build
         arguments: '--no-restore --configuration $(buildConfiguration)'
         projects: |
-          '**/*.csproj'
-          '!**/*.UITests.csproj'
+          '**/$(dotNetProjectName).csproj'
+          '**/$(dotNetProjectName).Tests.csproj'
 
     - task: DotNetCoreCLI@2
       displayName: Install .NET Core tools from local manifest
@@ -89,7 +89,7 @@ stages:
         command: test
         arguments: '--no-build --configuration $(buildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/Coverage/'
         publishTestResults: true
-        projects: '**/*.Tests.csproj'
+        projects: '**/$(dotNetProjectName).Tests.csproj'
 
     - task: DotNetCoreCLI@2
       displayName: Create code coverage report
@@ -191,7 +191,7 @@ stages:
       inputs:
         command: build
         arguments: '--configuration $(buildConfiguration)'
-        projects: '**/*.UITests.csproj'
+        projects: '**/$(dotNetProjectName).UITests.csproj'
   
     - task: DotNetCoreCLI@2
       displayName: Run UI tests - $(buildConfiguration)
@@ -199,7 +199,7 @@ stages:
         command: test
         arguments: '--no-build --configuration $(buildConfiguration)'
         publishTestResults: true
-        projects: '**/*.UITests.csproj'        
+        projects: '**/$(dotNetProjectName).UITests.csproj'        
 
 - stage: Staging
   displayName: Deploy to staging environment
