@@ -254,7 +254,7 @@ stages:
     pool:
       vmImage: ubuntu-18.04
     variables:
-      - jmeterVersion: 5.3
+      jmeterVersion: 5.3
     steps:
 
     - script: |
