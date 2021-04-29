@@ -59,7 +59,7 @@ namespace UITests
                 // Navigate to the site.
                 // The site name is stored in the SITE_URL environment variable to make 
                 // the tests more flexible.
-                string url = Environment.GetEnvironmentVariable("uiTestsSiteUrl");
+                string url = Environment.GetEnvironmentVariable("webAppUrlTest");
                 driver.Navigate().GoToUrl(url + "/");
 
                 // Wait for the page to be completely loaded.
