@@ -53,13 +53,23 @@ stages:
       displayName: Write build info
       workingDirectory: $(wwwrootDir)
 
-    - task: NuGetCommand@2
-      displayName: Restore dependencies
+    # - task: NuGetCommand@2
+    #   displayName: Restore solution dependencies
+    #   inputs:
+    #     command: restore
+    #     restoreSolution: '**/*.sln'
+    #     feedsToUse: select
+    #     vstsFeed: $(System.TeamProject)/$(artifactsFeedName)
+    
+    - task: DotNetCoreCLI@2
+      displayName: Restore app and unit tests dependencies
       inputs:
         command: restore
-        restoreSolution: '**/*.sln'
         feedsToUse: select
         vstsFeed: $(System.TeamProject)/$(artifactsFeedName)
+        projects: |
+          **/$(dotNetProjectName).csproj
+          **/$(dotNetProjectName).Tests.csproj
 
     - task: DotNetCoreCLI@2
       displayName: Build app and unit tests - $(buildConfiguration)
