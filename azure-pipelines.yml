@@ -1,19 +1,23 @@
+# Conventions:
+# - Do not quote strings except for paths, scripts, and task arguments.
+# - Add an empty line before and after each stage, job, and step.
+
 trigger:
-- '*'
+- *
 
 variables:
-  - group: 'spacegame'
-  - name: 'dotNetProjectName'
-    value: 'Tailspin.SpaceGame.Web'
-  - name: 'buildConfiguration'
-    value: 'Release'
-  - name: 'releaseBranchName'
-    value: 'release'
-  - name: 'dotnetSdkVersion'
-    value: '3.1.300'
+  - group: spacegame
+  - name: dotNetProjectName
+    value: Tailspin.SpaceGame.Web
+  - name: buildConfiguration
+    value: Release
+  - name: releaseBranchName
+    value: release
+  - name: dotnetSdkVersion
+    value: 3.1.300
 
 schedules:
-- cron: '0 3 * * *'
+- cron: 0 3 * * *
   displayName: Deploy every day at 3 A.M.
   branches:
     include:
@@ -21,100 +25,100 @@ schedules:
   always: false
 
 stages:
-- stage: 'Build'
-  displayName: 'Build web app'
+
+- stage: Build
+  displayName: Build web app
   jobs:
-  - job: 'Build'
-    displayName: 'Build'
+
+  - job: Build
     pool:
-      vmImage: 'ubuntu-18.04'
+      vmImage: ubuntu-18.04
       demands:
       - npm
-
     variables:
-      wwwrootDir: '$(dotNetProjectName)/wwwroot'
-
+      wwwrootDir: $(dotNetProjectName)/wwwroot
     steps:
+
     - task: UseDotNet@2
-      displayName: 'Use .NET Core SDK $(dotnetSdkVersion)'
+      displayName: Use .NET Core SDK $(dotnetSdkVersion)
       inputs:
-        version: '$(dotnetSdkVersion)'
+        version: $(dotnetSdkVersion)
 
     - task: Npm@1
-      displayName: 'Run npm install'
+      displayName: Run npm install
       inputs:
         verbose: false
 
     - script: './node_modules/.bin/node-sass $(wwwrootDir) --output $(wwwrootDir)'
-      displayName: 'Compile Sass assets'
+      displayName: Compile Sass assets
 
     - task: gulp@1
-      displayName: 'Run gulp tasks'
+      displayName: Run gulp tasks
 
     - script: 'echo "$(Build.DefinitionName), $(Build.BuildId), $(Build.BuildNumber)" > buildinfo.txt'
-      displayName: 'Write build info'
-      workingDirectory: $(wwwrootDir)
+      displayName: Write build info
+      workingDirectory: '$(wwwrootDir)'
 
     - task: NuGetCommand@2
-      displayName: 'Restore project dependencies'
+      displayName: Restore dependencies
       inputs:
-        command: 'restore'
+        command: restore
         restoreSolution: '**/*.sln'
-        feedsToUse: 'select'
-        vstsFeed: '$(System.TeamProject)/$(artifactsFeedName)'
+        feedsToUse: select
+        vstsFeed: $(System.TeamProject)/$(artifactsFeedName)
 
     - task: DotNetCoreCLI@2
-      displayName: 'Build project - $(buildConfiguration)'
+      displayName: Build app and unit tests - $(buildConfiguration)
       inputs:
-        command: 'build'
+        command: build
         arguments: '--no-restore --configuration $(buildConfiguration)'
         projects: |
-          **/*.csproj
-          !**/*.UITests.csproj'
+          '**/*.csproj'
+          '!**/*.UITests.csproj'
 
     - task: DotNetCoreCLI@2
-      displayName: 'Install .NET Core tools from local manifest'
+      displayName: Install .NET Core tools from local manifest
       inputs:
         command: custom
         custom: tool
         arguments: 'restore'
 
     - task: DotNetCoreCLI@2
-      displayName: 'Run unit tests - $(buildConfiguration)'
+      displayName: Run unit tests - $(buildConfiguration)
       inputs:
-        command: 'test'
+        command: test
         arguments: '--no-build --configuration $(buildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/Coverage/'
         publishTestResults: true
         projects: '**/*.Tests.csproj'
 
     - task: DotNetCoreCLI@2
-      displayName: 'Create code coverage report'
+      displayName: Create code coverage report
       inputs:
         command: custom
         custom: tool
         arguments: 'run reportgenerator -reports:$(Build.SourcesDirectory)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/CodeCoverage -reporttypes:HtmlInline_AzurePipelines'
 
     - task: PublishCodeCoverageResults@1
-      displayName: 'Publish code coverage report'
+      displayName: Publish code coverage report
       inputs:
-        codeCoverageTool: 'cobertura'
+        codeCoverageTool: cobertura
         summaryFileLocation: '$(Build.SourcesDirectory)/**/coverage.cobertura.xml'
 
     - task: DotNetCoreCLI@2
-      displayName: 'Publish project - $(buildConfiguration)'
+      displayName: Publish app - $(buildConfiguration)
       inputs:
-        command: 'publish'
+        command: publish
         projects: '**/$(dotNetProjectName).csproj'
         publishWebProjects: false
         arguments: '--no-build --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/$(buildConfiguration)'
         zipAfterPublish: true
 
     - publish: '$(Build.ArtifactStagingDirectory)'
-      displayName: 'Publish artifact to drop folder'
+      displayName: Publish artifact to drop folder
       artifact: drop
 
-- stage: 'Dev'
-  displayName: 'Deploy to dev environment'
+- stage: Dev
+  displayName: Deploy to dev environment
   dependsOn: Build
   condition: |
     and
@@ -123,85 +127,101 @@ stages:
       eq(variables['Build.SourceBranchName'], variables['releaseBranchName'])
     )
   jobs:
+
   - deployment: Deploy
     pool:
-      vmImage: 'ubuntu-18.04'
+      vmImage: ubuntu-18.04
     environment: Dev
     strategy:
       runOnce:
         deploy:
           steps:
+
           - download: current
+            displayName: Download build artifact from drop folder
             artifact: drop
+
           - task: AzureWebApp@1
-            displayName: 'Deploy to Azure App Service - $(webAppNameDev)'
+            displayName: Deploy to Azure App Service - $(webAppNameDev)
             inputs:
-              azureSubscription: '$(azureServiceConnectionName)'
-              appName: '$(webAppNameDev)'
+              azureSubscription: $(azureServiceConnectionName)
+              appName: $(webAppNameDev)
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/$(dotNetProjectName).zip'
 
-- stage: 'Test'
-  displayName: 'Deploy to test environment'
+- stage: Test
+  displayName: Deploy to test environment
   dependsOn: Dev
   #condition: eq(variables['Build.Reason'], 'Schedule')
   jobs:
+
   - deployment: Deploy
     pool:
-      vmImage: 'ubuntu-18.04'
+      vmImage: ubuntu-18.04
     environment: Test
     strategy:
       runOnce:
         deploy:
           steps:
+
           - download: current
+            displayName: Download build artifact from drop folder
             artifact: drop
+
           - task: AzureWebApp@1
-            displayName: 'Deploy to Azure App Service - $(webAppNameTest)'
+            displayName: Deploy to Azure App Service - $(webAppNameTest)
             inputs:
-              azureSubscription: '$(azureServiceConnectionName)'
-              appName: '$(webAppNameTest)'
+              azureSubscription: $(azureServiceConnectionName)
+              appName: $(webAppNameTest)
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/$(dotNetProjectName).zip'
+
   - job: RunUITests
     dependsOn: Deploy
-    displayName: 'Run UI tests'
+    displayName: Run UI tests
     pool:
-      vmImage: 'windows-2019'
+      vmImage: windows-2019
     steps:
+
     - task: UseDotNet@2
-      displayName: 'Use .NET Core SDK $(dotnetSdkVersion)'
+      displayName: Use .NET Core SDK $(dotnetSdkVersion)
       inputs:
-        version: '$(dotnetSdkVersion)'
+        version: $(dotnetSdkVersion)
+
     - task: DotNetCoreCLI@2
-      displayName: 'Build UI test project - $(buildConfiguration)'
+      displayName: Build UI tests project - $(buildConfiguration)
       inputs:
-        command: 'build'
+        command: build
         arguments: '--configuration $(buildConfiguration)'
         projects: '**/*.UITests.csproj'
+  
     - task: DotNetCoreCLI@2
-      displayName: 'Run UI tests - $(buildConfiguration)'
+      displayName: Run UI tests - $(buildConfiguration)
       inputs:
-        command: 'test'
+        command: test
         arguments: '--no-build --configuration $(buildConfiguration)'
         publishTestResults: true
         projects: '**/*.UITests.csproj'        
 
-- stage: 'Staging'
-  displayName: 'Deploy to staging environment'
+- stage: Staging
+  displayName: Deploy to staging environment
   dependsOn: Test
   jobs:
+
   - deployment: Deploy
     pool:
-      vmImage: 'ubuntu-18.04'
+      vmImage: ubuntu-18.04
     environment: Staging
     strategy:
       runOnce:
         deploy:
           steps:
+
           - download: current
+            displayName: Download build artifact from drop folder
             artifact: drop
+
           - task: AzureWebApp@1
-            displayName: 'Deploy to Azure App Service - $(webAppNameStaging)'
+            displayName: Deploy to Azure App Service - $(webAppNameStaging)
             inputs:
-              azureSubscription: '$(azureServiceConnectionName)'
-              appName: '$(webAppNameStaging)'
+              azureSubscription: $(azureServiceConnectionName)
+              appName: $(webAppNameStaging)
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/$(dotNetProjectName).zip'
