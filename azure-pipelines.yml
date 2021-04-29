@@ -116,7 +116,7 @@ stages:
     and
     (
       eq(variables['skipStageDev'], 'false'),
-      dependencies.Build.succeeded(),
+      dependencies.Build.succeeded,
       eq(variables['Build.SourceBranchName'], variables['releaseBranchName'])
     )
   jobs:
@@ -150,11 +150,11 @@ stages:
     and
     (
       eq(variables['skipStageTest'], 'false'),
-      dependencies.Build.succeeded(),
+      dependencies.Build.succeeded,
       or
       (
-        dependencies.Dev.skipped(),
-        dependencies.Dev.succeeded(),
+        dependencies.Dev.skipped,
+        dependencies.Dev.succeeded,
       )
     )
   jobs:
@@ -216,16 +216,16 @@ stages:
     and
     (
       eq(variables['skipStageStaging'], 'false'),
-      dependencies.Build.succeeded(),
+      dependencies.Build.succeeded,
       or
       (
-        dependencies.Dev.skipped(),
-        dependencies.Dev.succeeded(),
+        dependencies.Dev.skipped,
+        dependencies.Dev.succeeded,
       ),
       or
       (
-        dependencies.Test.skipped(),
-        dependencies.Test.succeeded(),
+        dependencies.Test.skipped,
+        dependencies.Test.succeeded,
       )
     )
   jobs:
