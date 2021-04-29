@@ -61,15 +61,15 @@ stages:
     #     feedsToUse: select
     #     vstsFeed: $(System.TeamProject)/$(artifactsFeedName)
     
-    - task: DotNetCoreCLI@2
-      displayName: Restore app and unit tests dependencies
-      inputs:
-        command: restore
-        feedsToUse: select
-        vstsFeed: $(System.TeamProject)/$(artifactsFeedName)
-        projects: |
-          **/$(dotNetProjectName).csproj
-          **/$(dotNetProjectName).Tests.csproj
+    # - task: DotNetCoreCLI@2
+    #   displayName: Restore app and unit tests dependencies
+    #   inputs:
+    #     command: restore
+    #     feedsToUse: select
+    #     vstsFeed: $(System.TeamProject)/$(artifactsFeedName)
+    #     projects: |
+    #       **/$(dotNetProjectName).csproj
+    #       **/$(dotNetProjectName).Tests.csproj
 
     - task: DotNetCoreCLI@2
       displayName: Build app and unit tests - $(buildConfiguration)
