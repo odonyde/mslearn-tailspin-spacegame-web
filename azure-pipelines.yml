@@ -115,8 +115,8 @@ stages:
   condition: |
     and
     (
-      succeeded(),
       eq(variables['skipStageDev'], 'false'),
+      eq(dependencies.Build.result, 'Succeeded'),
       eq(variables['Build.SourceBranchName'], variables['releaseBranchName'])
     )
   jobs:
@@ -143,12 +143,15 @@ stages:
 
 - stage: Test
   displayName: Deploy to test environment
-  dependsOn: Dev
+  dependsOn:
+    - Build
+    - Dev
   condition: |
     and
     (
-      succeeded(),
-      eq(variables['skipStageTest'], 'false')
+      eq(variables['skipStageTest'], 'false'),
+      eq(dependencies.Build.result, 'Succeeded'),
+      in(dependencies.Dev.result, 'Succeeded', 'Skipped')
     )
   jobs:
 
@@ -201,12 +204,17 @@ stages:
 
 - stage: Staging
   displayName: Deploy to staging environment
-  dependsOn: Test
+  dependsOn:
+    - Build
+    - Dev
+    - Test
   condition: |
     and
     (
-      succeeded(),
-      eq(variables['skipStageStaging'], 'false')
+      eq(variables['skipStageStaging'], 'false'),
+      eq(dependencies.Build.result, 'Succeeded'),
+      in(dependencies.Dev.result, 'Succeeded', 'Skipped'),
+      in(dependencies.Test.result, 'Succeeded', 'Skipped')
     )
   jobs:
 
