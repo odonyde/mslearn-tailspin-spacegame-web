@@ -3,7 +3,7 @@
 # - Add an empty line before and after each stage, job, and step.
 
 trigger:
-- *
+- '*'
 
 variables:
   - group: spacegame
