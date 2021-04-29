@@ -26,7 +26,7 @@ stages:
 
   - job: Build
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
       demands:
       - npm
     variables:
@@ -135,7 +135,7 @@ stages:
 
   - deployment: Deploy
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     environment: Dev
     strategy:
       runOnce:
@@ -169,7 +169,7 @@ stages:
 
   - deployment: Deploy
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     environment: Test
     strategy:
       runOnce:
@@ -232,7 +232,7 @@ stages:
 
   - deployment: Deploy
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     environment: Staging
     strategy:
       runOnce:
