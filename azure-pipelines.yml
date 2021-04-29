@@ -248,7 +248,7 @@ stages:
               appName: $(webAppNameStaging)
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/$(dotNetProjectName).zip'
 
-- job: LoadTests
+  - job: LoadTests
     dependsOn: Deploy
     displayName: Load tests
     pool:
