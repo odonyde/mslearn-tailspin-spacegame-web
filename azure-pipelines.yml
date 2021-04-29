@@ -148,7 +148,7 @@ stages:
     and
     (
       succeeded(),
-      eq(variables['skipStageTest'], 'false'),
+      eq(variables['skipStageTest'], 'false')
     )
   jobs:
 
