@@ -200,7 +200,7 @@ stages:
     #     version: $(dotnetSdkVersion)
 
     - task: DotNetCoreCLI@2
-      displayName: Build UI tests project - $(buildConfiguration)
+      displayName: Build UI tests - $(buildConfiguration)
       inputs:
         command: build
         arguments: '--configuration $(buildConfiguration)'
