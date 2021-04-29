@@ -57,7 +57,7 @@ stages:
 
     - script: 'echo "$(Build.DefinitionName), $(Build.BuildId), $(Build.BuildNumber)" > buildinfo.txt'
       displayName: Write build info
-      workingDirectory: '$(wwwrootDir)'
+      workingDirectory: $(wwwrootDir)
 
     - task: NuGetCommand@2
       displayName: Restore dependencies
@@ -73,8 +73,8 @@ stages:
         command: build
         arguments: '--no-restore --configuration $(buildConfiguration)'
         projects: |
-          '**/$(dotNetProjectName).csproj'
-          '**/$(dotNetProjectName).Tests.csproj'
+          **/$(dotNetProjectName).csproj
+          **/$(dotNetProjectName).Tests.csproj
 
     - task: DotNetCoreCLI@2
       displayName: Install .NET Core tools from local manifest
